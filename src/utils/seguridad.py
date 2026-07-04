@@ -33,3 +33,9 @@ def desencriptar_dato(texto_encriptado: str) -> str:
         return _obtener_suite().decrypt(texto_encriptado.encode("utf-8")).decode("utf-8")
     except Exception:
         return "[Error de Cifrado / Archivo Alterado]"
+
+def encriptar_contrasena(contrasena: str) -> str:
+    return sha256(contrasena.encode("utf-8")).hexdigest()
+
+def verificar_contrasena(contrasena: str, hash_almacenado: str) -> bool:
+    return encriptar_contrasena(contrasena) == hash_almacenado

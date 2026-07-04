@@ -1,6 +1,43 @@
+import io
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
+
+def generar_reporte_excel_como_bytes(productos, historial):
+    buffer = io.BytesIO()
+    exito = generar_reporte_excel(buffer, productos, historial)
+    if exito:
+        buffer.seek(0)
+    return buffer if exito else None
+
+def generar_reporte_completo_excel(ruta: str) -> bool:
+    try:
+        from src.database.conexion import obtener_conexion
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        cursor.execute("SELECT nombre, cantidad, precio_costo, detalles, stock_minimo FROM productos")
+        productos = []
+        for row in cursor.fetchall():
+            productos.append({
+                "nombre": row[0], "cantidad": row[1],
+                "precio_costo": row[2], "detalles": row[3] or "",
+                "stock_minimo": row[4]
+            })
+        cursor.execute("SELECT fecha_hora, tipo_evento, descripcion FROM historial_movimientos ORDER BY id DESC")
+        historial = []
+        for row in cursor.fetchall():
+            historial.append({"fecha": row[0], "tipo": row[1], "descripcion": row[2]})
+        conexion.close()
+        with open(ruta, "wb") as f:
+            buffer = io.BytesIO()
+            ok = generar_reporte_excel(buffer, productos, historial)
+            if not ok:
+                return False
+            f.write(buffer.getvalue())
+        return True
+    except Exception as e:
+        print(f"Error generando reporte completo: {e}")
+        return False
 
 def generar_reporte_excel(archivo_salida, productos, historial) -> bool:
     try:
@@ -45,7 +82,7 @@ def generar_reporte_excel(archivo_salida, productos, historial) -> bool:
                         if "precio venta:" in parte.lower():
                             precio_unitario = float(parte.split("$")[-1].strip())
                     salida_total = cantidad_piezas * precio_unitario
-            except Exception:
+            except (ValueError, IndexError, AttributeError):
                 pass
 
             saldo_neto = salida_total - entrada_total

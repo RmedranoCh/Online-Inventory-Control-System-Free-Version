@@ -4,7 +4,7 @@ from src.utils.excel_exporter import generar_reporte_excel
 
 app = Flask(__name__)
 
-MAX_PRODUCTOS = 10
+MAX_PRODUCTOS = 20
 MAX_EXCEL = 2
 MAX_STR_LEN = 500
 MAX_HISTORIAL = 500

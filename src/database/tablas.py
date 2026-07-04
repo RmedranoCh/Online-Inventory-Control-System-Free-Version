@@ -1,8 +1,17 @@
 from src.database.conexion import obtener_conexion
+from src.utils.seguridad import encriptar_contrasena
 
 def inicializar_base_de_datos():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT NOT NULL UNIQUE,
+            contrasena TEXT NOT NULL
+        );
+    """)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS productos (
@@ -50,6 +59,11 @@ def inicializar_base_de_datos():
             archivos_excel_generados INTEGER DEFAULT 0
         );
     """)
+
+    cursor.execute("""
+        INSERT OR IGNORE INTO usuarios (usuario, contrasena)
+        VALUES (?, ?)
+    """, ("admin", encriptar_contrasena("admin123")))
 
     conexion.commit()
     conexion.close()
