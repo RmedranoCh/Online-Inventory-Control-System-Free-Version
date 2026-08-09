@@ -44,7 +44,7 @@ Algunas cosas que quizá no se ven a simple vista:
 - **Cifrado Fernet (AES) y hashing SHA-256** listos para usar si algún día este proyecto necesitara persistencia del lado del servidor.
 - **Reporte Excel con nombre y apellido.** No es un CSV disfrazado. Tiene formato profesional, encabezados azules, anchos de columna ajustados, y fórmulas de suma automáticas.
 - **Límites validados en dos capas:** en el frontend y en el backend. Porque un buen sistema de demo se cuida de los curiosos.
-- **Pruebas automatizadas** que cubren cifrado, generación de Excel y validación de rutas (16 tests en total).
+- **Pruebas automatizadas** que cubren cifrado, generación de Excel y validación de rutas (32 tests en total).
 - **CI/CD completo** con linting (ruff), type checking (pyright) y tests en GitHub Actions.
 - **Soporte multiplataforma** para producción: Gunicorn en Linux, Waitress en Windows, y Procfile listo para Render o Heroku.
 
@@ -60,7 +60,7 @@ Algunas cosas que quizá no se ven a simple vista:
 | Seguridad     | cryptography (Fernet AES), SHA-256  |
 | Despliegue    | Gunicorn (Linux) / Waitress (Win)   |
 | CI/CD         | GitHub Actions (ruff + pyright)     |
-| Tests         | pytest (16 tests)                   |
+| Tests         | pytest (32 tests)                   |
 | Carga         | Locust                              |
 
 ---
@@ -120,9 +120,9 @@ inventory-control-system/
 ├── templates/
 │   └── index.html              # La aplicación completa en una sola página
 ├── tests/
-│   ├── test_app.py             # 8 tests de integración de rutas y API
+│   ├── test_app.py             # 14 tests de integración de rutas, API y cabeceras
 │   ├── test_seguridad.py       # 9 tests unitarios de cifrado y hashing
-│   └── test_excel.py           # 5 tests unitarios de exportación Excel
+│   └── test_excel.py           # 9 tests unitarios de exportación Excel
 ├── src/
 │   ├── utils/
 │   │   ├── seguridad.py        # Cifrado Fernet y hashing SHA-256
@@ -198,7 +198,7 @@ Some things you might not notice at first glance:
 - **Fernet (AES) encryption and SHA-256 hashing** ready to go if this project ever needs server-side persistence.
 - **A proper Excel report.** Not a disguised CSV. It has professional formatting, blue headers, auto-adjusted column widths, and built-in SUM formulas.
 - **Two-layer limit validation** on both frontend and backend. A good demo system keeps the curious in check.
-- **Automated tests** covering encryption, Excel generation, and route validation (16 tests total).
+- **Automated tests** covering encryption, Excel generation, and route validation (32 tests total).
 - **Full CI/CD pipeline** with linting (ruff), type checking (pyright), and tests on GitHub Actions.
 - **Cross-platform production support**: Gunicorn on Linux, Waitress on Windows, and a Procfile ready for Render or Heroku.
 
@@ -214,7 +214,7 @@ Some things you might not notice at first glance:
 | Security       | cryptography (Fernet AES), SHA-256  |
 | Deployment     | Gunicorn (Linux) / Waitress (Win)   |
 | CI/CD          | GitHub Actions (ruff + pyright)     |
-| Tests          | pytest (16 tests)                   |
+| Tests          | pytest (32 tests)                |
 | Load Testing   | Locust                              |
 
 ---
@@ -274,9 +274,9 @@ inventory-control-system/
 ├── templates/
 │   └── index.html              # Single-page application (all-in-one)
 ├── tests/
-│   ├── test_app.py             # 8 integration tests for routes and API
+│   ├── test_app.py             # 14 integration tests for routes, API and headers
 │   ├── test_seguridad.py       # 9 unit tests for encryption and hashing
-│   └── test_excel.py           # 5 unit tests for Excel export
+│   └── test_excel.py           # 9 unit tests for Excel export
 ├── src/
 │   ├── utils/
 │   │   ├── seguridad.py        # Fernet encryption and SHA-256 hashing

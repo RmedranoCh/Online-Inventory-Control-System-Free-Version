@@ -1,8 +1,7 @@
-import pytest
 from src.utils.seguridad import (
-    encriptar_dato,
     desencriptar_dato,
     encriptar_contrasena,
+    encriptar_dato,
     verificar_contrasena,
 )
 

@@ -1,7 +1,9 @@
 import io
+
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+
 
 def generar_reporte_excel_como_bytes(productos, historial):
     buffer = io.BytesIO()
@@ -10,19 +12,25 @@ def generar_reporte_excel_como_bytes(productos, historial):
         buffer.seek(0)
     return buffer if exito else None
 
+
 def generar_reporte_completo_excel(ruta: str) -> bool:
     try:
         from src.database.conexion import obtener_conexion
+
         conexion = obtener_conexion()
         cursor = conexion.cursor()
         cursor.execute("SELECT nombre, cantidad, precio_costo, detalles, stock_minimo FROM productos")
         productos = []
         for row in cursor.fetchall():
-            productos.append({
-                "nombre": row[0], "cantidad": row[1],
-                "precio_costo": row[2], "detalles": row[3] or "",
-                "stock_minimo": row[4]
-            })
+            productos.append(
+                {
+                    "nombre": row[0],
+                    "cantidad": row[1],
+                    "precio_costo": row[2],
+                    "detalles": row[3] or "",
+                    "stock_minimo": row[4],
+                }
+            )
         cursor.execute("SELECT fecha_hora, tipo_evento, descripcion FROM historial_movimientos ORDER BY id DESC")
         historial = []
         for row in cursor.fetchall():
@@ -39,6 +47,7 @@ def generar_reporte_completo_excel(ruta: str) -> bool:
         print(f"Error generando reporte completo: {e}")
         return False
 
+
 def generar_reporte_excel(archivo_salida, productos, historial) -> bool:
     try:
         libro = openpyxl.Workbook()
@@ -51,9 +60,15 @@ def generar_reporte_excel(archivo_salida, productos, historial) -> bool:
 
         ws_kardex = libro.active
         ws_kardex.title = "Libro Contable"
-        cabeceras = ["Fecha y Hora", "Detalle / Operación", "Cantidad Movida",
-                     "Precio Unitario ($)", "Entradas (Costo Total) ($)",
-                     "Salidas (Venta Total) ($)", "Saldo Neto ($)"]
+        cabeceras = [
+            "Fecha y Hora",
+            "Detalle / Operación",
+            "Cantidad Movida",
+            "Precio Unitario ($)",
+            "Entradas (Costo Total) ($)",
+            "Salidas (Venta Total) ($)",
+            "Saldo Neto ($)",
+        ]
         ws_kardex.append(cabeceras)
 
         fila_actual = 2
@@ -86,18 +101,22 @@ def generar_reporte_excel(archivo_salida, productos, historial) -> bool:
                 pass
 
             saldo_neto = salida_total - entrada_total
-            ws_kardex.append([
-                h.get("fecha", ""), desc, cantidad_piezas,
-                precio_unitario, entrada_total, salida_total, saldo_neto
-            ])
+            ws_kardex.append(
+                [h.get("fecha", ""), desc, cantidad_piezas, precio_unitario, entrada_total, salida_total, saldo_neto]
+            )
             fila_actual += 1
 
-        ws_kardex.append([
-            "TOTALES", "Sumatoria global analítica", "-", "-",
-            f"=SUM(E2:E{fila_actual-1})",
-            f"=SUM(F2:F{fila_actual-1})",
-            f"=SUM(G2:G{fila_actual-1})"
-        ])
+        ws_kardex.append(
+            [
+                "TOTALES",
+                "Sumatoria global analítica",
+                "-",
+                "-",
+                f"=SUM(E2:E{fila_actual - 1})",
+                f"=SUM(F2:F{fila_actual - 1})",
+                f"=SUM(G2:G{fila_actual - 1})",
+            ]
+        )
 
         for col_idx in range(1, 8):
             celda_tot = ws_kardex.cell(row=fila_actual, column=col_idx)
@@ -105,15 +124,19 @@ def generar_reporte_excel(archivo_salida, productos, historial) -> bool:
             celda_tot.fill = relleno_total
 
         ws_inventario = libro.create_sheet(title="Inventario Disponible")
-        ws_inventario.append(["ID", "Nombre", "Cantidad en Stock",
-                              "Costo Adquisición ($)", "Detalles", "Stock Mínimo"])
+        ws_inventario.append(["ID", "Nombre", "Cantidad en Stock", "Costo Adquisición ($)", "Detalles", "Stock Mínimo"])
 
         for i, p in enumerate(productos, 1):
-            ws_inventario.append([
-                i, p.get("nombre", ""), p.get("cantidad", 0),
-                p.get("precio_costo", 0.0), p.get("detalles", ""),
-                p.get("stock_minimo", 5)
-            ])
+            ws_inventario.append(
+                [
+                    i,
+                    p.get("nombre", ""),
+                    p.get("cantidad", 0),
+                    p.get("precio_costo", 0.0),
+                    p.get("detalles", ""),
+                    p.get("stock_minimo", 5),
+                ]
+            )
 
         for hoja in libro.worksheets:
             for col_idx in range(1, hoja.max_column + 1):

@@ -1,5 +1,6 @@
 import pytest
-from app import app, MAX_PRODUCTOS, MAX_EXCEL
+
+from app import MAX_EXCEL, MAX_PRODUCTOS, app
 
 
 @pytest.fixture
@@ -39,7 +40,10 @@ class TestExportarExcel:
 
     def test_excel_demasiados_productos_devuelve_400(self, cliente):
         payload = {
-            "productos": [{"nombre": f"P{i}", "cantidad": 1, "precio_costo": 1.0, "stock_minimo": 1, "detalles": ""} for i in range(MAX_PRODUCTOS + 1)],
+            "productos": [
+                {"nombre": f"P{i}", "cantidad": 1, "precio_costo": 1.0, "stock_minimo": 1, "detalles": ""}
+                for i in range(MAX_PRODUCTOS + 1)
+            ],
             "historial": [],
             "excel_count": 0,
         }
@@ -73,9 +77,63 @@ class TestExportarExcel:
         }
         resp = cliente.post("/api/excel", json=payload)
         assert resp.status_code == 403
-        assert b"L\u00edmite alcanzado" in resp.data  # noqa: W605
+        assert "Límite alcanzado" in resp.get_json()["error"]
 
     def test_excel_formato_invalido_devuelve_400(self, cliente):
         resp = cliente.post("/api/excel", json={"productos": "invalido", "historial": []})
         assert resp.status_code == 400
-        assert b"Formato inv\u00e1lido" in resp.data  # noqa: W605
+        assert "Formato inválido" in resp.get_json()["error"]
+
+
+class TestHistorialYLimites:
+    def test_historial_muy_largo_se_recorta(self, cliente):
+        import app as modulo
+
+        payload = {
+            "productos": [{"nombre": "Test", "cantidad": 10, "precio_costo": 100.0, "stock_minimo": 2, "detalles": ""}],
+            "historial": [
+                {"fecha": "2024-01-01", "tipo": "CREACION", "descripcion": "x"}
+                for _ in range(modulo.MAX_HISTORIAL + 10)
+            ],
+            "excel_count": 0,
+        }
+        resp = cliente.post("/api/excel", json=payload)
+        assert resp.status_code == 200
+
+    def test_historial_formato_invalido_devuelve_400(self, cliente):
+        resp = cliente.post(
+            "/api/excel",
+            json={
+                "productos": [{"nombre": "Test", "cantidad": 1, "precio_costo": 1.0, "stock_minimo": 1}],
+                "historial": "mal",
+                "excel_count": 0,
+            },
+        )
+        assert resp.status_code == 400
+
+    def test_excel_count_como_string_se_convierte(self, cliente):
+        payload = {
+            "productos": [{"nombre": "Test", "cantidad": 10, "precio_costo": 100.0, "stock_minimo": 2, "detalles": ""}],
+            "historial": [],
+            "excel_count": "0",
+        }
+        resp = cliente.post("/api/excel", json=payload)
+        assert resp.status_code == 200
+
+    def test_nombre_muy_largo_devuelve_400(self, cliente):
+        payload = {
+            "productos": [{"nombre": "x" * 501, "cantidad": 1, "precio_costo": 1.0, "stock_minimo": 1, "detalles": ""}],
+            "historial": [],
+            "excel_count": 0,
+        }
+        resp = cliente.post("/api/excel", json=payload)
+        assert resp.status_code == 400
+
+
+class TestSeguridadHeaders:
+    def test_headers_seguridad_presentes(self, cliente):
+        resp = cliente.get("/")
+        assert resp.headers["X-Content-Type-Options"] == "nosniff"
+        assert resp.headers["X-Frame-Options"] == "DENY"
+        assert "default-src 'self'" in resp.headers["Content-Security-Policy"]
+        assert resp.headers["Referrer-Policy"] == "no-referrer"

@@ -1,5 +1,7 @@
 import io
-from flask import Flask, jsonify, request, send_file, render_template
+
+from flask import Flask, jsonify, render_template, request, send_file
+
 from src.utils.excel_exporter import generar_reporte_excel
 
 app = Flask(__name__)
@@ -27,9 +29,7 @@ def agregar_headers_seguridad(response):
         "frame-ancestors 'none'; "
         "base-uri 'self'"
     )
-    response.headers["Permissions-Policy"] = (
-        "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-    )
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     return response
 
 
@@ -72,9 +72,7 @@ def exportar_excel():
                 return jsonify({"error": f"Valor inválido en '{k}'"}), 400
 
     if excel_count >= MAX_EXCEL:
-        return jsonify({
-            "error": f"Límite alcanzado: máximo {MAX_EXCEL} archivos Excel en la versión gratuita"
-        }), 403
+        return jsonify({"error": f"Límite alcanzado: máximo {MAX_EXCEL} archivos Excel en la versión gratuita"}), 403
 
     output = io.BytesIO()
     exito = generar_reporte_excel(output, productos, historial)
@@ -93,4 +91,5 @@ def exportar_excel():
 
 if __name__ == "__main__":
     import os
+
     app.run(debug=os.environ.get("FLASK_DEBUG", "0") == "1", host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

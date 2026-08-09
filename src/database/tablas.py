@@ -1,6 +1,7 @@
 from src.database.conexion import obtener_conexion
 from src.utils.seguridad import encriptar_contrasena
 
+
 def inicializar_base_de_datos():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
@@ -60,10 +61,13 @@ def inicializar_base_de_datos():
         );
     """)
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT OR IGNORE INTO usuarios (usuario, contrasena)
         VALUES (?, ?)
-    """, ("admin", encriptar_contrasena("admin123")))
+    """,
+        ("admin", encriptar_contrasena("admin123")),
+    )
 
     conexion.commit()
     conexion.close()
